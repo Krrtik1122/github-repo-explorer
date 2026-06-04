@@ -1,11 +1,22 @@
 import 'dotenv/config'
-import pkg from 'pg'
+import express from 'express'
+import cors from 'cors'
+import helmet from 'helmet'
+import githubRouter from './routes/github.js'
 
-const { Pool } = pkg
+const app = express()
+const PORT = process.env.PORT || 3001
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
+app.use(helmet())
+app.use(cors({ origin: 'http://localhost:5173' }))
+app.use(express.json())
+
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok' })
 })
 
-export default pool
+app.use('/api', githubRouter)
+
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`)
+})
