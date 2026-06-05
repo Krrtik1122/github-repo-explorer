@@ -40,13 +40,16 @@ function App() {
     }
   }
 
-  return (
+return (
     <div className="app">
       <h1>GitHub Repo Explorer</h1>
       <SearchBar onSearch={handleSearch} />
       {loading && <p className="status">Loading...</p>}
-      {error && <p className="status error">{error}</p>}
+      {error && <p className="status error">⚠️ {error}</p>}
       {user && <ProfileCard user={user} />}
+      {user && !loading && repos.length === 0 && (
+        <p className="status">No public repositories found.</p>
+      )}
       {repos.length > 0 && <RepoList repos={repos} />}
     </div>
   )
