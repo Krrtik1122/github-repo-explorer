@@ -4,6 +4,7 @@ import { getFromCache, saveToCache } from '../services/cacheService.js'
 
 const router = Router()
 
+// Input validation helper
 function isValidUsername(username) {
   return /^[a-zA-Z0-9-]{1,39}$/.test(username)
 }
@@ -29,10 +30,9 @@ router.get('/users/:username', async (req, res) => {
     await saveToCache(cacheKey, user)
     res.json({ ...user, _cache: 'miss' })
   } catch (err) {
-    console.error('USER ROUTE ERROR:', err.message)
     const status = err.response?.status || 500
     if (status === 404) return res.status(404).json({ error: 'User not found' })
-    if (status === 403) return res.status(403).json({ error: 'GitHub rate limit exceeded' })
+    if (status === 403) return res.status(403).json({ error: 'GitHub rate limit exceeded, try again later' })
     res.status(500).json({ error: 'Something went wrong' })
   }
 })
@@ -58,7 +58,6 @@ router.get('/users/:username/repos', async (req, res) => {
     await saveToCache(cacheKey, repos)
     res.json({ data: repos, _cache: 'miss' })
   } catch (err) {
-    console.error('REPOS ROUTE ERROR:', err.message)
     const status = err.response?.status || 500
     if (status === 404) return res.status(404).json({ error: 'User not found' })
     if (status === 403) return res.status(403).json({ error: 'GitHub rate limit exceeded' })
