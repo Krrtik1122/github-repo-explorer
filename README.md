@@ -2,7 +2,7 @@
 
 A full-stack web app that lets you search any GitHub username and view their public profile and repositories. Built with React, Node.js, PostgreSQL, and deployed on Netlify + Render + Supabase.
 
-🔗 **Live Demo:** https://githubrepoexplorerrrr.netlify.app
+🔗 **Live Demo:**: https://githubrepoexplorerrrr.netlify.app/
 
 ---
 
