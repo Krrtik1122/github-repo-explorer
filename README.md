@@ -2,7 +2,8 @@
 
 A full-stack web app that lets you search any GitHub username and view their public profile and repositories. Built with React, Node.js, PostgreSQL, and deployed on Netlify + Render + Supabase.
 
-🔗 **Live Demo:**: https://githubrepoexplorerrrr.netlify.app/
+🔗 **Live Demo:** https://githubrepoexplorerrrr.netlify.app
+🔗 **Backend API:** https://github-repo-explorer-fa20.onrender.com
 
 ---
 
@@ -50,12 +51,19 @@ Render (Node.js + Express backend)
 
 ## Features
 
+### Implemented
 - Search any GitHub username
-- View public profile — avatar, bio, followers, location
-- View list of public repositories with language, stars, forks
-- Backend caches responses for 1 hour (cache-aside pattern)
+- View public profile — avatar, name, bio, followers, following, public repo count, location
+- View list of public repositories with name, description, language badge, stars, forks, last updated date
+- Sort repositories by last updated, most stars, or name
+- Click any repo to expand and see open issues, default branch, visibility, watchers
+- Backend caches responses for 1 hour (cache-aside pattern with PostgreSQL)
+- Recently searched usernames persist in localStorage (last 5 searches)
+- Loading skeleton animation while fetching
+- Error handling — 404 for unknown users, rate limit messages, network errors
 - Input validation on both frontend and backend
-- Proper error handling — 404 for unknown users, rate limit messages
+- Pagination — load more repositories (30 per page)
+- Language usage chart across all repos
 
 ---
 
@@ -66,10 +74,13 @@ github-repo-explorer/
 ├── client/                  ← React app (Vite)
 │   └── src/
 │       ├── App.jsx
+│       ├── App.css
 │       └── components/
 │           ├── SearchBar.jsx
 │           ├── ProfileCard.jsx
-│           └── RepoList.jsx
+│           ├── RepoList.jsx
+│           ├── Skeleton.jsx
+│           └── LangChart.jsx
 ├── server/                  ← Node.js + Express
 │   ├── index.js
 │   ├── routes/
@@ -147,7 +158,7 @@ Frontend runs on `http://localhost:5173`
 |--------|----------|-------------|
 | GET | `/health` | Health check |
 | GET | `/api/users/:username` | Get GitHub user profile |
-| GET | `/api/users/:username/repos` | Get user's public repos |
+| GET | `/api/users/:username/repos?page=1` | Get user's public repos (paginated) |
 
 ---
 
@@ -159,10 +170,6 @@ Frontend runs on `http://localhost:5173`
 |----------|-------------|
 | `GITHUB_TOKEN` | GitHub personal access token |
 | `DATABASE_URL` | Supabase PostgreSQL connection string |
-
-### Client
-
-No environment variables needed for production. The API URL is hardcoded to the Render backend.
 
 ---
 
@@ -189,10 +196,10 @@ The app uses the **cache-aside pattern**:
 
 1. Request comes in for a username
 2. Check `cached_responses` table in PostgreSQL
-3. If found and under 1 hour old → return cached data
+3. If found and under 1 hour old → return cached data instantly
 4. If not found or expired → fetch from GitHub API, store in DB, return fresh data
 
-The cache table schema:
+Cache table schema:
 
 ```sql
 CREATE TABLE cached_responses (
@@ -201,6 +208,41 @@ CREATE TABLE cached_responses (
   fetched_at  TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 ```
+
+Cache keys follow the pattern:
+- `user:torvalds` — profile data
+- `repos:torvalds:page:1` — repos page 1
+
+---
+
+## What could be improved next
+
+### Performance
+- **Redis cache** instead of PostgreSQL for sub-millisecond cache reads
+- **CDN caching** for static assets
+- **Debounced search-as-you-type** instead of button click
+- **Request deduplication** — if two users search the same username simultaneously, only make one GitHub API call
+
+### Features
+- **GitHub OAuth login** — let users authenticate to get 5000 req/hr instead of 60
+- **Compare two users** — side-by-side profile and repo comparison
+- **Repo README preview** — fetch and render README.md inline on repo expand
+- **Follow graph** — visualize who a user follows and who follows them
+- **Rate limit indicator** — show remaining GitHub API calls (from response headers)
+- **Manual cache refresh** — button to force fresh data bypassing cache
+- **Export to CSV** — download repo list as spreadsheet
+
+### Code quality
+- **TypeScript** — add type safety across frontend and backend
+- **Unit tests** — Jest for backend services, React Testing Library for components
+- **API rate limiting** — protect your own backend with express-rate-limit
+- **Helmet + CORS hardening** — tighter security headers
+- **Environment-based API URL** — use `VITE_API_URL` env var instead of hardcoded Render URL
+
+### Monitoring
+- **Error tracking** — Sentry for frontend and backend errors
+- **Uptime monitoring** — keep Render from sleeping with a cron ping
+- **Cache analytics** — track hit/miss ratio in a `/stats` endpoint
 
 ---
 
