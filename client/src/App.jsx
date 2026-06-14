@@ -20,7 +20,9 @@ function App() {
     try {
       const [userRes, reposRes] = await Promise.all([
         fetch(`http://localhost:3001/api/users/${searchUsername}`),
-        fetch(`http://localhost:3001/api/users/${searchUsername}/repos`)
+        fetch(`http://localhost:3001/api/users/${searchUsername}/repos`),
+        fetch(`https://github-repo-explorer-fa20.onrender.com/api/users/${searchUsername}`),
+fetch(`https://github-repo-explorer-fa20.onrender.com/api/users/${searchUsername}/repos`)
       ])
 
       if (!userRes.ok) {
